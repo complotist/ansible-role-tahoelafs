@@ -1,0 +1,90 @@
+- name: install prerequisite
+  apt:
+    update_cache: yes
+    state: present
+    pkg:
+      - virtualenv
+      - git
+      - python2.7
+
+- name: create user tahoe
+  user:
+    name: tahoe
+    shell: /bin/bash
+    home: /home/tahoe
+
+- name: clone tahoe
+  become: yes
+  become_user: tahoe
+  args:
+    chdir: /home/tahoe/
+  command:
+    cmd: git clone https://github.com/tahoe-lafs/tahoe-lafs
+    creates: /home/tahoe/tahoe-lafs
+
+- name: setup venv
+  become: yes
+  become_user: tahoe
+  args:
+    chdir: /home/tahoe/tahoe-lafs
+  command:
+    cmd: virtualenv --python=python2.7 venv
+    creates: /home/tahoe/tahoe-lafs/venv
+
+- name: upgrade venv's setuptools
+  become: yes
+  become_user: tahoe
+  args:
+    chdir: /home/tahoe/tahoe-lafs
+  command:
+    cmd: venv/bin/pip install --upgrade setuptools
+
+- name: install tahoe
+  become: yes
+  become_user: tahoe
+  args:
+    chdir: /home/tahoe/tahoe-lafs
+  command:
+    cmd: venv/bin/pip install --editable .
+
+- name: check tahoe.cfg status
+  stat:
+    path: /home/tahoe/.tahoe/tahoe.cfg
+  register: stat_tahoecfg
+
+- name: init node
+  when: not stat_tahoecfg.stat.exists
+  become: yes
+  become_user: tahoe
+  args:
+    chdir: /home/tahoe/tahoe-lafs
+  command:
+    cmd: venv/bin/tahoe create-client
+
+- name: generate config from template
+  template:
+    src: ~/git/ansible/roles/tahoe-lafs/templates/tahoe.cfg.j2
+    dest: /home/tahoe/.tahoe/tahoe.cfg
+    owner: tahoe
+    group: tahoe
+    mode: 0650
+
+- name: generate introducers
+  template:
+    src: ~/git/ansible/roles/tahoe-lafs/templates/introducers.yaml.j2
+    dest: /home/tahoe/.tahoe/private/introducers.yaml
+    owner: tahoe
+    group: tahoe
+    mode: 0650
+
+- name: create cron job on reboot
+  cron:
+    name: tahoe run
+    user: tahoe
+    special_time: reboot
+    job: '/home/tahoe/tahoe-lafs/venv/bin/tahoe run'
+
+- name: append iptables rules
+  lineinfile:
+    path: /etc/network/if-up.d/iptables
+    line: "iptables -I INPUT -p tcp -m tcp --dport {{tahoe.node.tub_port}} -j ACCEPT -m comment --comment tahoe-lafs"

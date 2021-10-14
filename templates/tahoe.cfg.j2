@@ -1,0 +1,34 @@
+[node]
+nickname = {{tahoe.node.nickname}}
+reveal-IP-address = {{tahoe.node.reveal_ip_address | default('true')}}
+web.port = tcp:{{tahoe.node.web_port | default(3456) | int}}:interface={{tahoe.node.web_interface | default('127.0.0.1')}}
+web.static = {{tahoe.node.public_html | default('public_html')}}
+tub.port = tcp:{{tahoe.node.tub_port | int}}
+tub.location = tcp:{{tahoe.node.host}}:{{tahoe.node.tub_port | int}}
+
+[client]
+helper.furl = {{tahoe.clienthelper_furl | default('')}}
+
+shares.needed = {{tahoe.clientshares_needed | default(3) | int}}
+shares.happy = {{tahoe.clientshares_happy | default(7) | int}}
+shares.total = {{tahoe.clientshares_total | default(10) | int}}
+
+[storage]
+# Shall this node provide storage service?
+enabled = {{tahoe.storage.enabled | default('false') | bool}}
+#readonly =
+reserved_space = {{tahoe.storage.reserved_space | default('3G')}}
+expire.enabled = {{tahoe.storage.expire_enabled | default('false')}}
+expire.mode = {{tahoe.storage.expire_mode | default('age')}}
+expire.override_lease_duration = {{tahoe.storage.expire_override_lease_duration | default('1 month')}}
+
+[helper]
+# Shall this node run a helper service that clients can use?
+enabled = {{tahoe.helper.enabled | default('false') | bool}}
+
+[sftpd]
+enabled = {{tahoe.sftp.enabled | default('false') | bool}}
+port = tcp:{{tahoe.sftp.port | default(8022) | int}}:interface={{tahoe.sftp.interface | default('127.0.0.1')}}
+host_pubkey_file = {{tahoe.sftp.host_pubkey_file | default('private/ssh_host_rsa_key.pub')}}
+host_privkey_file = {{tahoe.sftp.host_privkey_file | default('private/ssh_host_rsa_key')}}
+accounts.file = {{tahoe.sftp.accounts_file | default('private/accounts')}}

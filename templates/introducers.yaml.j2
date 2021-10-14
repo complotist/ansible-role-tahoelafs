@@ -1,0 +1,5 @@
+introducers:
+{% for introducer in tahoe.introducers %}
+  {{introducer}}:
+    furl: {{tahoe.introducers[introducer]}}
+{% endfor %}

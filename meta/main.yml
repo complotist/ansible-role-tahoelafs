@@ -1,0 +1,14 @@
+galaxy_info:
+  author: complotist
+  description: install tahoe-lafs from pip2
+  license: WTFPL
+  min_ansible_version: 2.1
+  platforms:
+    - name: Debian
+      versions:
+        - 9
+        - 10
+
+  galaxy_tags:
+    - tahoe
+    - lafs
